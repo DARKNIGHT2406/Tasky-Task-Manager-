@@ -1,0 +1,88 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="ToDoContainer">
+        <div id="inputfields">
+            <div id="title">
+                <label for="Title">Title</label>
+                <input type="text" name="Title" class="inp" required>
+            </div>
+            <div id="content">
+                <label for="Content">Content</label>
+                <textarea id="autoTextarea" name="Content"  class="inp"  rows="1" placeholder="Type here..." required></textarea>
+
+            </div>
+            <div id="taskbtn">
+                <button id="closewindow">Close</button>
+                <button id="addtask">Add Task</button>
+            </div>
+            
+        </div>
+        <div id="headsection">
+            <div id="heading">TO DO LIST</div>
+        </div>
+        <div id="container">
+            <div id="SideBarsection">
+                <a href="" class="items">
+                    <div class="inneritem">
+                        <div class="logo">
+                            <img src="https://www.freepnglogos.com/uploads/logo-home-png/chimney-home-icon-transparent-1.png"
+                                alt="" class="inneritemimg">
+                        </div>
+                        <div class="inneritemname">HOME</div>
+                    </div>
+                </a>
+                <a href="donesec.html" class="items">
+                    <div class="inneritem">
+                        <div class="logo">
+                            <img src="https://as2.ftcdn.net/v2/jpg/02/18/10/25/1000_F_218102555_M89mB5ws847zSvrIeJIVckjiRMSeWwai.jpg"
+                                alt="" class="inneritemimg">
+                        </div>
+                        <div class="inneritemname">DONE</div>
+                    </div>
+                </a>
+                <a href="trashsec.html" class="items">
+                    <div class="inneritem">
+                        <div class="logo">
+                            <img src="https://img.freepik.com/premium-vector/professional-trash-bin-logo-municipal-city-sanitation-department_706143-4175.jpg"
+                                alt="" class="inneritemimg">
+                        </div>
+                        <div class="inneritemname">BIN</div>
+                    </div>
+                </a>
+                <a href="" class="items">
+                    <div class="inneritem">
+                        <div class="logo">
+                            <img src="https://www.nicepng.com/png/detail/14-148691_nintendo-switch-logo-transparent-nintendo-switch-logo.png"
+                                alt="" class="inneritemimg">
+                        </div>
+                        <div class="inneritemname">MODE</div>
+                    </div>
+                </a>
+            </div>
+            <div id="maincontentsection">
+                <div id="box">
+                    <div id="taskitmes">
+                        <div id="taskitem">Nothing</div>
+                    </div>
+                    
+                    <div id="button">
+                        <button id="deleteallbuttonsfield">DeleteAll</button>
+                        <button id="addbuttonsfield">+Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="index.js"></script>
+</body>
+
+</html>
