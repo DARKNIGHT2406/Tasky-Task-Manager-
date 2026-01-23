@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import styles from './TaskDetail.module.css';
 
@@ -11,7 +11,6 @@ export default function TaskDetailPage() {
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const router = useRouter();
 
     useEffect(() => {
         fetch(`/api/tasks/${params.id}`)

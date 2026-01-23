@@ -1,0 +1,155 @@
+.calendar {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--sidebar-border);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.header button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    color: var(--text-main);
+    transition: background 0.2s;
+}
+
+.header button:hover {
+    background: var(--background);
+}
+
+.monthLabel {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.weekDays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.weekDay {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.5rem 0;
+}
+
+.daysGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.dayCell {
+    height: 60px;
+    /* Reduced specific height */
+    position: relative;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.number {
+    z-index: 1;
+}
+
+/* Status Colors */
+.present {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.absent {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.leave {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.weekend {
+    background-color: var(--background);
+    color: var(--text-secondary);
+}
+
+.future {
+    opacity: 0.5;
+}
+
+.disabled {
+    color: var(--text-secondary);
+    opacity: 0.3;
+}
+
+.dot {
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 50%;
+    margin-top: 2px;
+}
+
+.legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.legendDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+    /* Matches text color by default, overridden below */
+}
+
+/* Use solid colors for legend dots */
+.legendDot.present {
+    background-color: #22c55e;
+}
+
+.legendDot.absent {
+    background-color: #ef4444;
+}
+
+.legendDot.leave {
+    background-color: #3b82f6;
+}
+
+.legendDot.weekend {
+    background-color: #9ca3af;
+}

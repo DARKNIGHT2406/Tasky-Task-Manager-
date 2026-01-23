@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
+import Notification from '@/models/Notification';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -50,5 +51,38 @@ export async function PUT(req, { params }) {
     }
 
     const updatedTask = await Task.findByIdAndUpdate(id, body, { new: true });
+
+    // Notifications Logic
+    if (status) {
+        if (status === 'SUBMITTED') {
+            // Notify Manager (Creator)
+            await Notification.create({
+                recipient: task.createdBy,
+                sender: session.user.id,
+                message: `Task submitted for approval: ${task.title}`,
+                type: 'APPROVAL_REQUEST',
+                relatedId: task._id,
+            });
+        } else if (status === 'COMPLETED') {
+            // Notify Employee
+            await Notification.create({
+                recipient: task.assignee,
+                sender: session.user.id,
+                message: `Task approved: ${task.title}`,
+                type: 'TASK_UPDATED',
+                relatedId: task._id,
+            });
+        } else if (status === 'IN_PROGRESS' && task.status === 'SUBMITTED') {
+            // Notify Employee (Rejection/Changes Requested)
+            await Notification.create({
+                recipient: task.assignee,
+                sender: session.user.id,
+                message: `Task returned for revision: ${task.title}`,
+                type: 'TASK_UPDATED',
+                relatedId: task._id,
+            });
+        }
+    }
+
     return NextResponse.json(updatedTask);
 }

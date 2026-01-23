@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
+import LayoutWrapper from '@/components/LayoutWrapper';
+import HighlightText from '@/components/HighlightText';
+import { useSearch } from '@/context/SearchContext';
 import styles from './MyTasks.module.css';
+import { Star, Square, Paperclip } from 'lucide-react';
 
 export default function MyTasksPage() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { searchTerm } = useSearch();
 
     useEffect(() => {
         fetch('/api/tasks')
@@ -17,51 +21,80 @@ export default function MyTasksPage() {
             .finally(() => setLoading(false));
     }, []);
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'PENDING': return 'gray';
-            case 'IN_PROGRESS': return 'blue';
-            case 'SUBMITTED': return 'orange';
-            case 'COMPLETED': return 'green';
-            case 'OVERDUE': return 'red';
-            default: return 'gray';
+    const filteredTasks = tasks.filter(task =>
+        searchTerm === '' ||
+        task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Helper to format date like Gmail (Time if today, Date if older)
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const today = new Date();
+        const isToday = date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+
+        if (isToday) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else {
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
         }
     };
 
     return (
-        <div className="min-h-screen bg-[var(--background)]">
-            <Navbar />
-            <main className="container" style={{ marginTop: '2rem' }}>
-                <h1 className={styles.heading}>My Assignments</h1>
+        <LayoutWrapper>
+            {/* Toolbar or similar could go here if needed */}
 
-                {loading ? (
-                    <p>Loading your tasks...</p>
-                ) : tasks.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p>You have no assigned tasks. Great job!</p>
-                    </div>
-                ) : (
-                    <div className={styles.taskGrid}>
-                        {tasks.map(task => (
-                            <Link href={`/my-tasks/${task._id}`} key={task._id} className={styles.cardLink}>
-                                <div className={`card ${styles.taskCard}`}>
-                                    <div className={styles.cardHeader}>
-                                        <span
-                                            className={styles.status}
-                                            style={{ backgroundColor: `var(--${getStatusColor(task.status)})`, color: 'white' }}
-                                        >
-                                            {task.status.replace('_', ' ')}
-                                        </span>
-                                        <span className={styles.date}>Due: {new Date(task.endDate).toLocaleDateString()}</span>
-                                    </div>
-                                    <h3 className={styles.title}>{task.title}</h3>
-                                    <p className={styles.desc}>{task.description.substring(0, 100)}...</p>
+            {loading ? (
+                <p style={{ padding: '2rem' }}>Loading...</p>
+            ) : filteredTasks.length === 0 ? (
+                <div className={styles.empty}>
+                    <p>No tasks found.</p>
+                </div>
+            ) : (
+                <div className={styles.taskList}>
+                    {filteredTasks.map(task => (
+                        <Link href={`/my-tasks/${task._id}`} key={task._id} className={styles.rowLink}>
+                            <div className={styles.taskRow}>
+                                <div className={styles.checkbox}>
+                                    <Square size={18} />
                                 </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
-            </main>
-        </div>
+                                <div className={styles.star}>
+                                    <Star size={18} fill={task.status === 'IN_PROGRESS' ? 'none' : 'none'} />
+                                    {/* Could use fill based on priority if we had it */}
+                                </div>
+
+                                {/* Using Title as the "Sender/Primary" column */}
+                                <div className={styles.sender}>
+                                    <HighlightText text={task.title} highlight={searchTerm} />
+                                </div>
+
+                                {/* Content Preview */}
+                                <div className={styles.contentWrapper}>
+                                    <span className={styles.snippet}>
+                                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{task.status}</span>
+                                        {' - '}
+                                        <HighlightText text={task.description.substring(0, 100)} highlight={searchTerm} />...
+                                    </span>
+                                </div>
+
+                                {/* File Attachment Indicator */}
+                                {task.imageUrl && (
+                                    <div className={styles.attachment}>
+                                        <Paperclip size={16} color="var(--text-secondary)" />
+                                    </div>
+                                )}
+
+                                {/* Date */}
+                                <div className={styles.date}>
+                                    {formatDate(task.endDate)}
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            )}
+        </LayoutWrapper>
     );
 }

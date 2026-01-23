@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import Image from 'next/image';
+import LayoutWrapper from '@/components/LayoutWrapper';
+import HighlightText from '@/components/HighlightText';
+import { useSearch } from '@/context/SearchContext';
 import styles from './Team.module.css';
-import { Trash2, UserPlus } from 'lucide-react';
+import { Trash2, UserPlus, X } from 'lucide-react';
 
 export default function TeamPage() {
     const [employees, setEmployees] = useState([]);
@@ -12,6 +14,8 @@ export default function TeamPage() {
     const [newEmployeeId, setNewEmployeeId] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [creating, setCreating] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { searchTerm } = useSearch();
 
     useEffect(() => {
         fetchEmployees();
@@ -31,7 +35,7 @@ export default function TeamPage() {
         }
     };
 
-    const handeCreate = async (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
         setCreating(true);
         try {
@@ -45,6 +49,7 @@ export default function TeamPage() {
                 setNewName('');
                 setNewEmployeeId('');
                 setNewPassword('');
+                setIsModalOpen(false);
                 fetchEmployees();
             } else {
                 const data = await res.json();
@@ -69,103 +74,132 @@ export default function TeamPage() {
         }
     };
 
+    const filteredEmployees = employees.filter(emp =>
+        searchTerm === '' ||
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="min-h-screen bg-[var(--background)]">
-            <Navbar />
-            <main className="container" style={{ marginTop: '2rem' }}>
-                <h1 className={styles.heading}>Team Management</h1>
-
-                <div className={styles.contentGrid}>
-                    {/* Create Employee Form */}
-                    <section className={`card ${styles.createCard}`}>
-                        <h2>Add New Employee</h2>
-                        <form onSubmit={handeCreate} className={styles.form}>
-                            <div className={styles.inputGroup}>
-                                <label>Full Name</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    value={newName}
-                                    onChange={(e) => setNewName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label>Employee ID</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    value={newEmployeeId}
-                                    onChange={(e) => setNewEmployeeId(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label>Initial Password</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn btn-primary" disabled={creating}>
-                                {creating ? 'Creating...' : 'Create Employee'}
-                            </button>
-                        </form>
-                    </section>
-
-                    {/* Employee List */}
-                    <section className={`card ${styles.listCard}`}>
-                        <h2>Employee Directory</h2>
-                        {loading ? (
-                            <p>Loading...</p>
-                        ) : employees.length === 0 ? (
-                            <p>No employees found.</p>
-                        ) : (
-                            <table className={styles.table}>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {employees.map((emp) => (
-                                        <tr key={emp._id}>
-                                            <td className={styles.empId} style={{ padding: '1rem', borderBottom: '1px solid var(--sidebar-border)' }}>{emp.employeeId}</td>
-                                            <td className={styles.empName} style={{ padding: '1rem', borderBottom: '1px solid var(--sidebar-border)' }}>{emp.name}</td>
-                                            <td style={{ padding: '1rem', borderBottom: '1px solid var(--sidebar-border)' }}>
-                                                <span style={{
-                                                    background: 'rgba(34, 197, 94, 0.1)',
-                                                    color: 'var(--success)',
-                                                    padding: '0.25rem 0.5rem',
-                                                    borderRadius: '99px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 600
-                                                }}>Active</span>
-                                            </td>
-                                            <td style={{ padding: '1rem', borderBottom: '1px solid var(--sidebar-border)' }}>
-                                                <button
-                                                    className="btn btn-ghost"
-                                                    style={{ color: 'var(--danger)', height: '2rem', padding: '0 0.5rem' }}
-                                                    onClick={() => handleDelete(emp._id)}
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </section>
+        <LayoutWrapper>
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <h1 className={styles.heading}>Team Members</h1>
+                    <button
+                        className={styles.addButton}
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        <UserPlus size={20} />
+                        Add Member
+                    </button>
                 </div>
-            </main>
-        </div>
+
+                {loading ? (
+                    <p>Loading...</p>
+                ) : filteredEmployees.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        <p>No team members found.</p>
+                    </div>
+                ) : (
+                    <div className={styles.grid}>
+                        {filteredEmployees.map((emp) => (
+                            <div className={styles.card} key={emp._id}>
+                                <div className={styles.cardHeader}>
+                                    {/* Optional: Add status dot or 3-dots menu here */}
+                                </div>
+                                <div className={styles.avatarWrapper}>
+                                    <Image
+                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random&color=fff`}
+                                        alt={emp.name}
+                                        className={styles.avatar}
+                                        width={80}
+                                        height={80}
+                                    />
+                                </div>
+                                <h3 className={styles.name}>
+                                    <HighlightText text={emp.name} highlight={searchTerm} />
+                                </h3>
+                                <span className={styles.role}>Team Member</span>
+
+                                <div className={styles.infoGrid}>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>ID</span>
+                                        <span className={styles.infoValue}>
+                                            <HighlightText text={emp.employeeId} highlight={searchTerm} />
+                                        </span>
+                                    </div>
+                                    <div className={styles.infoItem}>
+                                        <span className={styles.infoLabel}>Status</span>
+                                        <span className={styles.infoValue} style={{ color: '#22c55e' }}>Active</span>
+                                    </div>
+                                </div>
+
+                                <div className={styles.actions}>
+                                    <button
+                                        className={styles.deleteBtn}
+                                        onClick={() => handleDelete(emp._id)}
+                                    >
+                                        <Trash2 size={16} />
+                                        Remove Member
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Modal */}
+                {isModalOpen && (
+                    <div className={styles.modalOverlay} onClick={(e) => {
+                        if (e.target === e.currentTarget) setIsModalOpen(false);
+                    }}>
+                        <div className={styles.modal}>
+                            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+                                <X size={24} />
+                            </button>
+                            <h2 className={styles.modalTitle}>Add New Member</h2>
+                            <form onSubmit={handleCreate} className={styles.form}>
+                                <div className={styles.inputGroup}>
+                                    <label>Full Name</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="John Doe"
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Employee ID</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="EMP001"
+                                        value={newEmployeeId}
+                                        onChange={(e) => setNewEmployeeId(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Default Password</label>
+                                    <input
+                                        type="text" /* Keeping as text for visibility during creation, or change to password */
+                                        className="input-field"
+                                        placeholder="******"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className={styles.submitBtn} disabled={creating}>
+                                    {creating ? 'Creating...' : 'Create Member'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </LayoutWrapper>
     );
 }

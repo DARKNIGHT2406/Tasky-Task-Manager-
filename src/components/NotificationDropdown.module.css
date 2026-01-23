@@ -1,0 +1,120 @@
+.container {
+    position: relative;
+    display: inline-block;
+}
+
+.bellBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.bellBtn:hover {
+    background-color: var(--sidebar-border);
+}
+
+.badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+    border: 2px solid var(--surface);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 300px;
+    background: var(--card-bg);
+    /* Use card background properly */
+    background-color: white;
+    /* Fallback/Override if var not waiting */
+    border: 1px solid var(--sidebar-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    margin-top: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    color: black;
+}
+
+/* Dark mode override if card-bg is defined */
+@media (prefers-color-scheme: dark) {
+    .dropdown {
+        background-color: #1f2937;
+        color: white;
+    }
+}
+
+/* Or simpler: rely on CSS variables */
+.dropdown {
+    background-color: var(--surface);
+    color: var(--text-main);
+}
+
+.header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--sidebar-border);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+}
+
+.item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--sidebar-border);
+    font-size: 0.9rem;
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.item:hover {
+    background-color: var(--background);
+}
+
+.unread {
+    background-color: rgba(99, 102, 241, 0.1);
+    /* Primary color low opacity */
+}
+
+.unread:hover {
+    background-color: rgba(99, 102, 241, 0.15);
+}
+
+.message {
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}

@@ -33,7 +33,7 @@ async function dbConnect() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('MongoDB Connected Successfully');
+
       return mongoose;
     }).catch(e => {
       console.error('MongoDB Connection Error:', e);

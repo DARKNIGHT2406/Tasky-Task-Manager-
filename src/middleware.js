@@ -25,17 +25,22 @@ export default withAuth(
     },
     {
         callbacks: {
-            authorized: ({ token }) => !!token,
+            authorized: ({ token, req }) => {
+                if (req.nextUrl.pathname === '/login') return true;
+                if (req.nextUrl.pathname === '/') return true;
+                return !!token;
+            },
         },
-    }
-);
+    });
 
 export const config = {
     matcher: [
+        '/',
         '/dashboard/:path*',
         '/team/:path*',
         '/analytics/:path*',
         '/my-tasks/:path*',
-        '/tasks/:path*'
+        '/tasks/:path*',
+        '/attendance/:path*'
     ],
 };

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
 import User from '@/models/User';
+import Notification from '@/models/Notification';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -35,6 +36,15 @@ export async function POST(req) {
             assignee: assigneeId,
             createdBy: session.user.id,
             status: 'PENDING',
+        });
+
+        // Notify Assignee
+        await Notification.create({
+            recipient: assigneeId,
+            sender: session.user.id,
+            message: `New task assigned: ${title}`,
+            type: 'TASK_ASSIGNED',
+            relatedId: newTask._id,
         });
 
         return NextResponse.json(newTask, { status: 201 });

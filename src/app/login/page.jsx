@@ -30,7 +30,7 @@ export default function LoginPage() {
             } else {
                 router.push('/dashboard'); // Will be redirected by middleware if needed
             }
-        } catch (err) {
+        } catch {
             setError('An error occurred. Please try again.');
             setLoading(false);
         }

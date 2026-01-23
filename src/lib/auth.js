@@ -16,28 +16,32 @@ export const authOptions = {
                     throw new Error('Please enter an employee ID and password');
                 }
 
-                await dbConnect();
+                try {
+                    await dbConnect();
 
-                const user = await User.findOne({
-                    employeeId: credentials.employeeId,
-                });
+                    const user = await User.findOne({
+                        employeeId: credentials.employeeId,
+                    });
 
-                if (!user) {
-                    throw new Error('No user found with this ID');
+                    if (!user) {
+                        throw new Error('No user found with this ID');
+                    }
+
+                    const isMatch = await bcrypt.compare(credentials.password, user.password);
+
+                    if (!isMatch) {
+                        throw new Error('Incorrect password');
+                    }
+
+                    return {
+                        id: user._id.toString(),
+                        name: user.name,
+                        email: user.employeeId,
+                        role: user.role,
+                    };
+                } catch (error) {
+                    throw error;
                 }
-
-                const isMatch = await bcrypt.compare(credentials.password, user.password);
-
-                if (!isMatch) {
-                    throw new Error('Incorrect password');
-                }
-
-                return {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.employeeId, // Using email field to store employeeId for session
-                    role: user.role,
-                };
             },
         }),
     ],
