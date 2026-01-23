@@ -1,0 +1,106 @@
+.main {
+    max-width: 900px;
+}
+
+.detailCard {
+    padding: 3rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    max-width: 70%;
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.PENDING {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.IN_PROGRESS {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.SUBMITTED {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.COMPLETED {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.OVERDUE {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.timer {
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.overdue {
+    color: var(--danger);
+}
+
+.dates {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+}
+
+.description h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.description p {
+    color: var(--text-main);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.actions {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.readOnlyMsg {
+    background: #f1f5f9;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}

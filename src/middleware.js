@@ -1,0 +1,41 @@
+import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
+
+export default withAuth(
+    function middleware(req) {
+        const token = req.nextauth.token;
+        const path = req.nextUrl.pathname;
+
+        // Manager only paths
+        const managerPaths = ['/dashboard', '/team', '/analytics'];
+
+        // Employee only paths
+
+        if (token?.role !== 'MANAGER' && managerPaths.some(p => path.startsWith(p))) {
+            return NextResponse.redirect(new URL('/my-tasks', req.url));
+        }
+
+        if (token?.role === 'MANAGER' && path === '/') {
+            return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+
+        if (token?.role === 'EMPLOYEE' && path === '/') {
+            return NextResponse.redirect(new URL('/my-tasks', req.url));
+        }
+    },
+    {
+        callbacks: {
+            authorized: ({ token }) => !!token,
+        },
+    }
+);
+
+export const config = {
+    matcher: [
+        '/dashboard/:path*',
+        '/team/:path*',
+        '/analytics/:path*',
+        '/my-tasks/:path*',
+        '/tasks/:path*'
+    ],
+};
