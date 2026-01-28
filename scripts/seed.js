@@ -13,9 +13,10 @@ if (!MONGODB_URI) {
 
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    employeeId: { type: String, required: true, unique: true },
+    user_id: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['MANAGER', 'EMPLOYEE'], default: 'EMPLOYEE' },
+    role: { type: String, enum: ['MANAGER', 'EMPLOYEE', 'HR', 'ADMIN'], default: 'EMPLOYEE' },
+    reports_to: { type: String, default: null },
 });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -25,36 +26,53 @@ async function seed() {
         console.log('Connecting to MongoDB...');
         await mongoose.connect(MONGODB_URI);
 
+        // Drop legacy index if exists
+        try {
+            await User.collection.dropIndex('employeeId_1');
+            console.log('Dropped legacy index: employeeId_1');
+        } catch (e) {
+            // Index might not exist, ignore
+            if (e.code !== 27) {
+                console.log('Index drop info:', e.message);
+            }
+        }
+
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('password123', salt);
 
-        // Upsert Manager
-        await User.findOneAndUpdate(
-            { employeeId: 'MAN001' },
-            {
-                name: 'Manager One',
-                employeeId: 'MAN001',
-                password: hashedPassword,
-                role: 'MANAGER',
-            },
-            { upsert: true, new: true }
-        );
-        console.log('Manager (MAN001) password reset to: password123');
+        // Helper to hash password
+        const hash = async (pwd) => await bcrypt.hash(pwd, salt);
 
-        // Upsert Employee
-        await User.findOneAndUpdate(
-            { employeeId: 'shiv@2026' },
-            {
-                name: 'shiv',
-                employeeId: 'shiv@2026',
-                password: hashedPassword,
-                role: 'EMPLOYEE',
-            },
-            { upsert: true, new: true }
-        );
-        console.log('Employee (shiv@2026) password reset to: password123');
+        const managers = [
+            // Managers have been seeded.
+        ];
 
-        console.log('Database credentials updated successfully!');
+        for (const manager of managers) {
+            await User.findOneAndUpdate(
+                { user_id: manager.user_id },
+                manager,
+                { upsert: true, new: true }
+            );
+            console.log(`Upserted manager: ${manager.name} (${manager.user_id})`);
+        }
+
+        const employees = [
+            // Managers and employees have been seeded.
+            // Add new users here if needed.
+        ];
+
+        for (const emp of employees) {
+            // Hash password for employee
+            emp.password = await hash(emp.password);
+
+            await User.findOneAndUpdate(
+                { user_id: emp.user_id },
+                emp,
+                { upsert: true, new: true }
+            );
+            console.log(`Upserted employee: ${emp.name} (${emp.user_id})`);
+        }
+
+        console.log('Database seeding completed successfully!');
 
     } catch (error) {
         console.error('Seed Error:', error);
@@ -62,5 +80,6 @@ async function seed() {
         await mongoose.disconnect();
     }
 }
+
 
 seed();

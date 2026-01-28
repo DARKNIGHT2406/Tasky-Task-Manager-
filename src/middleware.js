@@ -7,15 +7,15 @@ export default withAuth(
         const path = req.nextUrl.pathname;
 
         // Manager only paths
-        const managerPaths = ['/dashboard', '/team', '/analytics'];
+        const managerPaths = ['/dashboard', '/analytics'];
 
         // Employee only paths
 
-        if (token?.role !== 'MANAGER' && managerPaths.some(p => path.startsWith(p))) {
+        if (token?.role !== 'MANAGER' && token?.role !== 'HR' && token?.role !== 'ADMIN' && managerPaths.some(p => path.startsWith(p))) {
             return NextResponse.redirect(new URL('/my-tasks', req.url));
         }
 
-        if (token?.role === 'MANAGER' && path === '/') {
+        if ((token?.role === 'MANAGER' || token?.role === 'HR' || token?.role === 'ADMIN') && path === '/') {
             return NextResponse.redirect(new URL('/dashboard', req.url));
         }
 
@@ -41,6 +41,7 @@ export const config = {
         '/analytics/:path*',
         '/my-tasks/:path*',
         '/tasks/:path*',
-        '/attendance/:path*'
+        '/attendance/:path*',
+        '/chat/:path*'
     ],
 };

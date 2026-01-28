@@ -17,7 +17,7 @@ export async function GET() {
     const results = [];
 
     for (const user of usersToCreate) {
-        const existing = await User.findOne({ employeeId: user.employeeId });
+        const existing = await User.findOne({ user_id: user.employeeId });
         if (existing) {
             existing.name = user.name;
             await existing.save();
@@ -26,7 +26,7 @@ export async function GET() {
             const hashedPassword = await bcrypt.hash(user.password, 10);
             await User.create({
                 name: user.name,
-                employeeId: user.employeeId,
+                user_id: user.employeeId,
                 password: hashedPassword,
                 role: user.role,
             });

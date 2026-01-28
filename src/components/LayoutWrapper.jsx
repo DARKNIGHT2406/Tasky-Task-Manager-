@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { useSearch } from '@/context/SearchContext';
 import NotificationDropdown from './NotificationDropdown';
 
+
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function LayoutWrapper({ children }) {
@@ -20,7 +21,10 @@ export default function LayoutWrapper({ children }) {
 
     useEffect(() => {
         const checkAttendance = async () => {
-            if (!session || pathname === '/attendance' || pathname === '/login') {
+            if (!session) return;
+
+            // Allow mark-attendance page to load without loop
+            if (pathname === '/mark-attendance') {
                 setIsChecking(false);
                 return;
             }
@@ -28,30 +32,40 @@ export default function LayoutWrapper({ children }) {
             try {
                 const res = await fetch('/api/attendance');
                 const data = await res.json();
+
                 if (!data.marked) {
-                    router.push('/attendance');
-                    // Don't set checking false, let redirect happen
+                    router.push('/mark-attendance');
                 } else {
                     setIsChecking(false);
                 }
             } catch (error) {
                 console.error('Attendance check failed', error);
-                setIsChecking(false); // Let them pass if system fails? Or block? Let's pass for now to avoid lockout on error.
+                setIsChecking(false);
             }
         };
 
-        checkAttendance();
+        if (session) {
+            checkAttendance();
+        } else if (session === null) {
+            setIsChecking(false);
+        }
+
     }, [pathname, session, router]);
 
-    if (isChecking && pathname !== '/attendance' && pathname !== '/login' && session) {
+    // If still checking, show loading (blocks the UI until validated)
+    if (isChecking && session && pathname !== '/mark-attendance') {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background)', color: 'var(--text-main)' }}>
                 Validating Attendance...
             </div>
         );
     }
+
+
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--background)' }}>
+
             <Sidebar />
 
             <main style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }}>

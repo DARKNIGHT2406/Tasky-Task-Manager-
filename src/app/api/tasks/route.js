@@ -72,7 +72,25 @@ export async function GET(req) {
 
     if (session.user.role === 'EMPLOYEE') {
         query = { assignee: session.user.id };
+    } else if (session.user.role === 'MANAGER') {
+        // Manager can only see tasks of their reports
+        const reports = await User.find({ reports_to: session.user.user_id }).select('_id');
+        const reportIds = reports.map(u => u._id);
+
+        if (employeeId) {
+            // Verify if specific employee belongs to this manager
+            const isReport = reportIds.some(id => id.toString() === employeeId);
+            if (!isReport) {
+                // Return empty or 403? Returning empty for now to avoid leaking existence
+                return NextResponse.json([]);
+            }
+            query = { assignee: employeeId };
+        } else {
+            // Show tasks of all reports
+            query = { assignee: { $in: reportIds } };
+        }
     } else if (employeeId) {
+        // HR/Admin specific filter
         query = { assignee: employeeId };
     }
 

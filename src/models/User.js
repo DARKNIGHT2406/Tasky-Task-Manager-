@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Please provide a name for this employee.'],
+        required: [true, 'Please provide a name.'],
         maxlength: [60, 'Name cannot be more than 60 characters'],
     },
-    employeeId: {
+    user_id: {
         type: String,
-        required: [true, 'Please provide an employee ID.'],
+        required: [true, 'Please provide a User ID.'],
         unique: true,
     },
     password: {
@@ -17,8 +17,34 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['MANAGER', 'EMPLOYEE'],
+        enum: ['MANAGER', 'EMPLOYEE', 'HR', 'ADMIN'],
         default: 'EMPLOYEE',
+    },
+    reports_to: {
+        type: String,
+        default: null,
+    },
+    // --- HR SALARY DATA ( STRICTLY PRIVATE ) ---
+    base_salary: {
+        type: Number,
+        default: 0,
+        select: false // Never return by default 
+    },
+    per_day_salary: {
+        type: Number,
+        default: 0,
+        select: false
+    },
+    per_minute_salary: {
+        type: Number,
+        default: 0,
+        select: false
+    },
+    penalty_rule: {
+        type: String,
+        enum: ['FIXED', 'MINUTE'],
+        default: 'MINUTE',
+        select: false
     },
     createdAt: {
         type: Date,
@@ -28,5 +54,6 @@ const UserSchema = new mongoose.Schema({
 
 // Optimization
 UserSchema.index({ role: 1 });
+UserSchema.index({ reports_to: 1 });
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

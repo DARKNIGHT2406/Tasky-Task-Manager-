@@ -8,7 +8,40 @@ import { useState } from 'react';
 
 const COLORS = ['#6366f1', '#ec4899', '#8b5cf6', '#10b981'];
 
-export default function DashboardClient({ stats, aiSummary, error }) {
+import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
+
+export default function DashboardClient({ stats, aiSummary, error, pendingLeaves = [] }) {
+    const router = useRouter();
+    const [leaves, setLeaves] = useState(pendingLeaves);
+    const [actionLoading, setActionLoading] = useState(null);
+
+    const handleLeaveAction = async (id, status) => {
+        if (!confirm(`Are you sure you want to ${status.toLowerCase()} this leave request?`)) return;
+        setActionLoading(id);
+
+        try {
+            const res = await fetch('/api/leaves', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+            });
+
+            if (res.ok) {
+                // Remove from list
+                setLeaves(leaves.filter(l => l._id !== id));
+                router.refresh(); // Refresh server data
+            } else {
+                alert('Failed to update leave status');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     // Mock Data for Charts
     const [activityData] = useState([
         { name: 'Mon', tasks: 4 },
@@ -132,6 +165,90 @@ export default function DashboardClient({ stats, aiSummary, error }) {
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Pending Leaves Section */}
+            <div className={styles.card} style={{ marginTop: '20px' }}>
+                <div className={styles.cardHeader}>
+                    <h3>Pending Leave Requests</h3>
+                </div>
+                {leaves.length === 0 ? (
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        No pending leave requests.
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--sidebar-border)', textAlign: 'left' }}>
+                                    <th style={{ padding: '10px', color: 'var(--text-secondary)' }}>Employee</th>
+                                    <th style={{ padding: '10px', color: 'var(--text-secondary)' }}>Type</th>
+                                    <th style={{ padding: '10px', color: 'var(--text-secondary)' }}>Dates</th>
+                                    <th style={{ padding: '10px', color: 'var(--text-secondary)' }}>Reason</th>
+                                    <th style={{ padding: '10px', color: 'var(--text-secondary)' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {leaves.map(leave => (
+                                    <tr key={leave._id} style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+                                        <td style={{ padding: '12px 10px' }}>
+                                            <div style={{ fontWeight: 600 }}>{leave.user?.name || 'Unknown'}</div>
+                                            <div style={{ fontSize: '0.8em', color: 'var(--text-secondary)' }}>{leave.user?.employeeId}</div>
+                                        </td>
+                                        <td style={{ padding: '12px 10px' }}>
+                                            <span style={{
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                background: 'var(--surface-hover)',
+                                                fontSize: '0.9em'
+                                            }}>
+                                                {leave.type}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '12px 10px', whiteSpace: 'nowrap', fontSize: '0.9em' }}>
+                                            {format(new Date(leave.startDate), 'MMM d')} - {format(new Date(leave.endDate), 'MMM d, yyyy')}
+                                        </td>
+                                        <td style={{ padding: '12px 10px', maxWidth: '200px', fontSize: '0.9em' }}>{leave.reason}</td>
+                                        <td style={{ padding: '12px 10px' }}>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => handleLeaveAction(leave._id, 'APPROVED')}
+                                                    disabled={actionLoading === leave._id}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '6px',
+                                                        background: '#22c55e',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        opacity: actionLoading === leave._id ? 0.7 : 1
+                                                    }}
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleLeaveAction(leave._id, 'REJECTED')}
+                                                    disabled={actionLoading === leave._id}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '6px',
+                                                        background: '#ef4444',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        opacity: actionLoading === leave._id ? 0.7 : 1
+                                                    }}
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {/* AI Summary Section */}

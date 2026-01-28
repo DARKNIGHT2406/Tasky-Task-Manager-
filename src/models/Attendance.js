@@ -23,6 +23,21 @@ const AttendanceSchema = new mongoose.Schema({
         lng: Number,
         address: String, // Optional reverse geocode
     },
+    // --- TIME TRACKING ---
+    in_time: {
+        type: Date,
+    },
+    out_time: {
+        type: Date,
+    },
+    is_late: {
+        type: Boolean,
+        default: false,
+    },
+    late_minutes: {
+        type: Number,
+        default: 0,
+    },
 });
 
 // Compound index to ensure one record per user per day

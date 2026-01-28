@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import LayoutWrapper from '@/components/LayoutWrapper';
 import HighlightText from '@/components/HighlightText';
@@ -11,11 +13,14 @@ export default function TeamPage() {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newName, setNewName] = useState('');
-    const [newEmployeeId, setNewEmployeeId] = useState('');
+    const [newUserId, setNewUserId] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [newRole, setNewRole] = useState('EMPLOYEE');
+    const [newReportsTo, setNewReportsTo] = useState('');
     const [creating, setCreating] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { searchTerm } = useSearch();
+    const { data: session } = useSession();
 
     useEffect(() => {
         fetchEmployees();
@@ -42,13 +47,21 @@ export default function TeamPage() {
             const res = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, employeeId: newEmployeeId, password: newPassword }),
+                body: JSON.stringify({
+                    name: newName,
+                    employeeId: newUserId,
+                    password: newPassword,
+                    role: newRole,
+                    reports_to: newReportsTo
+                }),
             });
 
             if (res.ok) {
                 setNewName('');
-                setNewEmployeeId('');
+                setNewUserId('');
                 setNewPassword('');
+                setNewRole('EMPLOYEE');
+                setNewReportsTo('');
                 setIsModalOpen(false);
                 fetchEmployees();
             } else {
@@ -68,6 +81,9 @@ export default function TeamPage() {
             const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setEmployees(employees.filter(emp => emp._id !== id));
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Failed to delete');
             }
         } catch (error) {
             console.error(error);
@@ -77,21 +93,25 @@ export default function TeamPage() {
     const filteredEmployees = employees.filter(emp =>
         searchTerm === '' ||
         emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.user_id.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const canManage = session?.user?.role === 'HR' || session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
 
     return (
         <LayoutWrapper>
             <div className={styles.container}>
                 <div className={styles.header}>
                     <h1 className={styles.heading}>Team Members</h1>
-                    <button
-                        className={styles.addButton}
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        <UserPlus size={20} />
-                        Add Member
-                    </button>
+                    {canManage && (
+                        <button
+                            className={styles.addButton}
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            <UserPlus size={20} />
+                            Add Member
+                        </button>
+                    )}
                 </div>
 
                 {loading ? (
@@ -114,18 +134,20 @@ export default function TeamPage() {
                                         className={styles.avatar}
                                         width={80}
                                         height={80}
+                                        height={80}
                                     />
                                 </div>
                                 <h3 className={styles.name}>
                                     <HighlightText text={emp.name} highlight={searchTerm} />
                                 </h3>
-                                <span className={styles.role}>Team Member</span>
+                                <span className={styles.role}>{emp.role}</span>
+                                {emp.reports_to && <span className={styles.role} style={{ fontSize: '0.8rem', marginTop: '4px' }}>Reports to: {emp.reports_to}</span>}
 
                                 <div className={styles.infoGrid}>
                                     <div className={styles.infoItem}>
                                         <span className={styles.infoLabel}>ID</span>
                                         <span className={styles.infoValue}>
-                                            <HighlightText text={emp.employeeId} highlight={searchTerm} />
+                                            <HighlightText text={emp.user_id} highlight={searchTerm} />
                                         </span>
                                     </div>
                                     <div className={styles.infoItem}>
@@ -134,15 +156,17 @@ export default function TeamPage() {
                                     </div>
                                 </div>
 
-                                <div className={styles.actions}>
-                                    <button
-                                        className={styles.deleteBtn}
-                                        onClick={() => handleDelete(emp._id)}
-                                    >
-                                        <Trash2 size={16} />
-                                        Remove Member
-                                    </button>
-                                </div>
+                                {canManage && (
+                                    <div className={styles.actions}>
+                                        <button
+                                            className={styles.deleteBtn}
+                                            onClick={() => handleDelete(emp._id)}
+                                        >
+                                            <Trash2 size={16} />
+                                            Remove Member
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -171,13 +195,13 @@ export default function TeamPage() {
                                     />
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Employee ID</label>
+                                    <label>User ID</label>
                                     <input
                                         type="text"
                                         className="input-field"
-                                        placeholder="EMP001"
-                                        value={newEmployeeId}
-                                        onChange={(e) => setNewEmployeeId(e.target.value)}
+                                        placeholder="User ID"
+                                        value={newUserId}
+                                        onChange={(e) => setNewUserId(e.target.value)}
                                         required
                                     />
                                 </div>
@@ -190,6 +214,28 @@ export default function TeamPage() {
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         required
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Role</label>
+                                    <select
+                                        className="input-field"
+                                        value={newRole}
+                                        onChange={(e) => setNewRole(e.target.value)}
+                                    >
+                                        <option value="EMPLOYEE">Employee</option>
+                                        <option value="HR">HR</option>
+                                        <option value="MANAGER">Manager</option>
+                                    </select>
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Reports To (User ID)</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="Manager ID"
+                                        value={newReportsTo}
+                                        onChange={(e) => setNewReportsTo(e.target.value)}
                                     />
                                 </div>
                                 <button type="submit" className={styles.submitBtn} disabled={creating}>

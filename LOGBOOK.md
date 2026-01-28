@@ -8,3 +8,4 @@ This document tracks manual updates, major changes, and important notes for the 
 - **Database**: Confirmed connection to MongoDB Atlas.
 - **Version Control**: Initialized Git repository and created this logbook.
 - **Current Status**: Application is runnable (`npm run dev`).
+- **Cleanup**: Removed legacy `TODOADVANCE` folder from the repository.

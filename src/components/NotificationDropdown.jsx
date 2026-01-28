@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import styles from './NotificationDropdown.module.css';
 
@@ -9,6 +10,7 @@ export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef(null);
+    const router = useRouter();
 
     const fetchNotifications = useCallback(async () => {
         try {
@@ -107,7 +109,20 @@ export default function NotificationDropdown() {
                             <div className={styles.empty}>No notifications found</div>
                         ) : (
                             filteredNotifications.map(notification => (
-                                <div key={notification._id} className={`${styles.item} ${!notification.read ? styles.unread : ''}`}>
+                                <div
+                                    key={notification._id}
+                                    className={`${styles.item} ${!notification.read ? styles.unread : ''}`}
+                                    onClick={() => {
+                                        if (notification.type === 'LEAVE_REQUEST') {
+                                            router.push('/dashboard');
+                                            setIsOpen(false);
+                                        } else if (notification.type === 'GENERAL' && notification.message.includes('leave')) {
+                                            router.push('/attendance'); // Or wherever employees see their status
+                                            setIsOpen(false);
+                                        }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                         <div style={{
                                             width: '20px',

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import Task from '@/models/Task';
 import User from '@/models/User';
+import Leave from '@/models/Leave';
 import DashboardClient from './DashboardClient';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,7 @@ export default async function Dashboard() {
         redirect('/login');
     }
 
-    if (session.user.role !== 'MANAGER') {
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'HR' && session.user.role !== 'ADMIN') {
         redirect('/my-tasks');
     }
 
@@ -27,17 +28,22 @@ export default async function Dashboard() {
     ];
     let error = null;
 
+    let serializedLeaves = [];
+
     try {
         await dbConnect();
 
-
-        const [totalEmployees, totalTasks, activeTasks, pendingApproval, completedTasks] = await Promise.all([
+        const [totalEmployees, totalTasks, activeTasks, pendingApproval, completedTasks, pendingLeaves] = await Promise.all([
             User.countDocuments({ role: 'EMPLOYEE' }),
             Task.countDocuments({}),
             Task.countDocuments({ status: { $in: ['PENDING', 'IN_PROGRESS'] } }),
             Task.countDocuments({ status: 'SUBMITTED' }),
-            Task.countDocuments({ status: 'COMPLETED' })
+            Task.countDocuments({ status: 'COMPLETED' }),
+            Leave.find({ status: 'PENDING' }).populate('user', 'name employeeId').lean()
         ]);
+
+        // Deep copy to ensure plain objects (lean() helps but dates need serialization sometimes)
+        serializedLeaves = JSON.parse(JSON.stringify(pendingLeaves));
 
         statsData = [
             { label: 'Total Employees', value: totalEmployees, color: 'blue', key: 'totalEmployees' },
@@ -87,6 +93,7 @@ export default async function Dashboard() {
         <DashboardClient
             session={session}
             stats={statsData}
+            pendingLeaves={serializedLeaves}
             aiSummary={aiSummary}
             error={error}
         />

@@ -21,10 +21,12 @@ export async function GET(req) {
 
         if (month) {
             const [year, monthNum] = month.split('-');
-            const startDate = new Date(year, monthNum - 1, 1);
-            // Calculate end date for the last day of the month
-            const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999); // Set to end of the last day of the month
-            query.date = { $gte: startDate, $lte: endDate };
+            const startDateStr = `${year}-${monthNum}-01`;
+            // Get last day of month
+            const lastDay = new Date(year, monthNum, 0).getDate();
+            const endDateStr = `${year}-${monthNum}-${lastDay}`;
+
+            query.date = { $gte: startDateStr, $lte: endDateStr };
         }
 
         const records = await Attendance.find(query).sort({ date: -1 });
@@ -51,18 +53,27 @@ export async function POST(req) {
         const body = await req.json();
         const { photo, location } = body;
 
-        if (!photo || !location) {
-            return NextResponse.json({ error: 'Photo and Location are required' }, { status: 400 });
+        if (!photo || !location || !location.lat || !location.lng) {
+            return NextResponse.json({ error: 'Photo and location required' }, { status: 400 });
         }
 
         const today = new Date().toISOString().split('T')[0];
 
-        // Create record (Unique index handles duplicates)
+        // Ensure user hasn't marked today
+        const existing = await Attendance.findOne({ user: session.user.id, date: today });
+        if (existing) {
+            return NextResponse.json({ error: 'Attendance already marked' }, { status: 400 });
+        }
+
         const record = await Attendance.create({
             user: session.user.id,
             date: today,
-            photo,
-            location,
+            photo, // Base64
+            location: {
+                lat: location.lat,
+                lng: location.lng,
+                address: location.address || 'Unknown Location'
+            }
         });
 
         return NextResponse.json(record, { status: 201 });
